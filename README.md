@@ -1,66 +1,69 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+Build Status Latest Stable Version License
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Blueprint
 
-## About Laravel
+Blueprint is an open-source tool for rapidly generating multiple Laravel components from a single, human readable definition.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Watch a quick demo of Blueprint in action and continue reading to get started.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Requirements
+Blueprint requires a Laravel application running the latest stable release of Laravel, currently Laravel 8.x.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Installation
+You can install Blueprint via composer using the following command:
 
-## Learning Laravel
+composer require --dev laravel-shift/blueprint
+Blueprint will automatically register itself using package discovery.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Additional Configuration: If you are running Laravel 8, or registering class-based routes or using the app/Models folder, you will need to configure Blueprint. Please review the Blueprint Docs for additional guidance.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Basic Usage
+Blueprint comes with a set of artisan commands. The one you'll use the most is the blueprint:build command to generate the Laravel components:
 
-## Laravel Sponsors
+php artisan blueprint:build [draft]
+The draft file contains a definition of the components to generate.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Let's review the following, example draft file to generate some blog components:
 
-### Premium Partners
+models:
+  Post:
+    title: string:400
+    content: longtext
+    published_at: nullable timestamp
+    author_id: id:user
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[CMS Max](https://www.cmsmax.com/)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-- **[Romega Software](https://romegasoftware.com)**
+controllers:
+  Post:
+    index:
+      query: all
+      render: post.index with:posts
 
-## Contributing
+    store:
+      validate: title, content, author_id
+      save: post
+      send: ReviewPost to:post.author.email with:post
+      dispatch: SyncMedia with:post
+      fire: NewPost with:post
+      flash: post.title
+      redirect: post.index
+From these simple 20 lines of YAML, Blueprint will generate all of the following Laravel components:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+A model class for Post complete with fillable, casts, and dates properties, as well as relationships methods.
+A migration to create the posts table.
+A factory intelligently setting columns with fake data.
+A controller class for PostController with index and store actions complete with code generated for each statement.
+Routes for the PostController actions.
+A form request of StorePostRequest validating title and content based on the Post model definition.
+A mailable class for ReviewPost complete with a post property set through the constructor.
+A job class for SyncMedia complete with a post property set through the constructor.
+An event class for NewPost complete with a post property set through the constructor.
+A Blade template of post/index.blade.php rendered by PostController@index.
+Note: This example assumes features within a default Laravel application such as the User model and app.blade.php layout. Otherwise, the generated test may have failures.
 
-## Code of Conduct
+Documentation
+Browse the Blueprint Docs for full details on defining models, defining controllers, advanced configuration, and extending Blueprint.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Support Policy
+Starting with version 2, Blueprint only generates code for the latest stable version of Laravel (currently Laravel 8). If you need to support older versions of Laravel, you may use version 1 or upgrade your application (try using Shift).
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Blueprint still follows semantic versioning. However, it does so with respect to its grammar. Any changes to the grammar will increase its major version number. Otherwise, minor version number increases will contain new features. This includes generating code for future versions of Laravel.
