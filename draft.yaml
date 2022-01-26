@@ -1,0 +1,55 @@
+models:
+  Employee:
+    name: string:100
+    identification: string:100
+    birth: datetime
+    salary: unsignedinteger
+    martial_status: enum:single,married,divorced
+    bonus: decimal:8,2
+    order: unsignedinteger default:1 index
+    user_id: id foreign:users.id
+    department_id: id foreign:departments.id
+    relationships:
+      belongsToMany: Project
+      hasOne: Contactinfo
+
+  Contactinfo:
+    phone: string:100
+    email: string:100
+    relationships:
+      belongsTo: Employee
+
+  department:
+    name: string:100
+    relationships:
+      hasMany: Employee
+
+  Project:
+    name: string:100
+    timestampsTz
+    softDeletesTZ
+    relationships:
+      belongsToMany: Employee
+
+  User:
+    name: string:250
+    email: string:250
+    email_verified_at: datetime nullable
+    password: string:250
+    remember_token: string:100 nullable
+
+seeders: Employee, Contactinfo, department, Project, User
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      resource: collection:employee
+
+
+
+
+
+
+
+

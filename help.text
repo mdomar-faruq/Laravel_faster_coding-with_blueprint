@@ -1,0 +1,532 @@
+Blueprint easily create Model and table etc in laravel link-
+
+DOC-> https://blueprint.laravelshift.com/
+https://laravel.com/api/8.x/Illuminate/Database/Schema/Blueprint.html
+GitHub->https://github.com/laravel-shift/blueprint
+
+
+---------------Command Line------------------
+1.create laravel projet via composer:
+ composer create-project Laravel/Laravel project_name
+ check Laravel version-> php artisan --version
+
+2.Blueprint create via composer:
+ composer require --dev laravel-shift/blueprint
+
+3. Use XAMPP Apache server and connect Database.
+ then run code->
+ php artisan migrate
+
+ Note:if error email variable  user table
+ write code->  $table->string('uuid',250)->unique();
+
+ -----------if problem- To specify Own property 250 defaultStringLength ---
+ L: App\Providers\AppServiceProvider.php
+
+use Illuminate\Support\Facades\Schema\Builder;
+//use Illuminate\Support\Facades\Schema;
+
+public function boot()
+{
+    Builder::defaultStringLength(250);
+    //Schema::defaultStringLength(191);
+}
+
+4.lets init our enveronment blueprint new
+    php artisan blueprint:new
+------Most Importent-----------
+    Note: bluprint have artisan 4 commend
+    1.new,2.trace,3.build,4.erase
+
+4.2. php artisan blueprint:build
+
+lets custome build draft.yaml,  autometic create model, table,seeder(only record) and factory
+Ex->Employee
+
+    models:
+    Employee:
+        name: string:100
+        identification: string:100
+        birth: datetime
+        salary: integer
+
+ command line: php artisan blueprint:build
+
+Note:check seeder, if seeder dose not record Employee
+write code:
+ public function run()
+    {
+        // \App\Models\User::factory(10)->create();
+        \App\Models\Employee::factory(10)->create();
+    }
+
+4.3.Add table, model in DB
+Command line:
+php artisan migrate
+php artisan db:seed //run db seeder and add bot document
+
+Note: if error , lets run code->
+php artisan blueprint:erase  // clean working state and delete all blueprint:build
+php artisan blueprint:build
+php artisan migrate:fresh   // all delete table and create new DB table
+php artisan db:seed //run db seeder and add bot doc
+
+4.4.
+php artisan blueprint:trace
+
+Note: you continue to develop your application.
+when run blueprint:trace,it record the blueprint:build and yml doc,
+and you can continue .
+
+5. lets build a batch to make  Our life Easier during test.
+So, create file in project-> blueprint.bat
+---------
+php artisan blueprint:erase
+php artisan blueprint:build
+php artisan migrate:fresh
+php artisan db:seed
+---------
+
+VSCode on project location : ./blueprint
+PC cmd on project location : blueprint
+
+6. Model Data Types-> https://blueprint.laravelshift.com/docs/model-data-types/
+
+models:
+  Employee:
+    name: string:100
+    identification: string:100
+    birth: datetime
+    salary: unsignedinteger
+    martial_status: enum:single,married,divorced
+    bonus: decimal:8,2
+    order: unsignedinteger default:1 index
+
+  User:
+    name: string:250
+    email: string:250
+    email_verified_at: datetime nullable
+    password: string:250
+
+
+Note: becarefull space,coma,colone,bracket
+
+7. Model Keys and Indexes
+For example ->
+
+ models:
+    Employee:
+        user_id: id foreign
+        owner_id: id foreign:users
+        uid: id foreign:users.id
+
+8. Many to Many relation
+Project and Employee many to many relation
+For example:
+
+Model:
+ Employee:
+    relationships:
+        belongsToMany: Project
+
+  Project:
+    relationships:
+        belongsToMany: Employee
+
+Note: that is create Employee_Project table
+Employee_ID and Project_ID
+
+9. One to one relation
+
+Model:
+ Employee:
+    relationships:
+      hasOne: Contactinfo
+
+ Contactinfo:
+    name: string:100
+    relationships:
+      belongsTo: Employee
+
+
+10. shorthand-> https://blueprint.laravelshift.com/docs/model-shorthands/
+
+Also softDeletesTZ that will create the delete_at column with timezone
+and timestampsTz ->This are default time zone
+example->
+Model:
+ Employee:
+   timestampsTz
+   softDeletesTZ
+
+example 2->
+models:
+  Widget:
+    id: id
+    deleted_at: timestamp
+    created_at: timestamp
+    updated_at: timestamp
+
+11.Generate Seeders-> https://blueprint.laravelshift.com/docs/generating-database-seeders/
+example->
+
+ Model:
+    Employee:
+     name: string:100
+    Project:
+     name: string:100
+
+seeders: Project, Employee
+
+Note: becarefull space and comma.
+<Old version>Blueprint does not create a UserSeeder.
+
+12. Blueprint Configuration, Similar to the default Laravel configuration file
+
+Command line-> php artisan vendor:publish --tag=blueprint-config
+
+Note: there are options for customizing the paths and namespaces for generated components
+
+13. Defining Controllers-> https://blueprint.laravelshift.com/docs/defining-controllers/
+  Blueprint also supports defining controllers.
+For Example->
+
+controllers:
+  employee:
+    test:
+      query: all
+
+  Post:
+    index:
+      query: all
+
+
+
+Note: Blueprint will generate two controllers.
+PostController and EmployeeController with Methode
+("employee" class, "test" Methode)
+
+14. More Advance query-> https://blueprint.laravelshift.com/docs/controller-statements/
+  Blueprint supports generating query statements
+The basic query builder methods for where clauses and ordering.
+Example 1->
+
+controllers:
+  employee:
+    test:
+      query: where:salary order:bonus
+
+Note: check salary ,if error, Define( $salary=$request->salary;)EX->
+
+    $salary=$request->salary;
+    $employees = Employee::where('salary',">", $salary)->orderBy('bonus')->get();
+    //salary higher than given velue
+
+     echo "<pre>";
+     var_dump(json_decode($employees));
+     echo "<pre>";
+
+URl-> http://localhost:8000/employee/test?salary=10
+
+Example 2:
+
+controllers:
+  employee:
+    test:
+      query: where:salary where:name order:bonus limit:3
+
+ -----check----
+   $employees = Employee::where('salary','>',$request->salary)->where('name','like','%'.$request->name."%")->orderBy('bonus')->limit(3)->get();
+   //salary higher than given velue,only 3 data show and Given name related
+
+     echo "<pre>";
+     var_dump(json_decode($employees));
+     echo "<pre>";
+
+    url->http://localhost:8000/employee/test?salary=10&name=k
+
+Example 3: Find id
+
+controllers:
+  employee:
+    test:
+      find: id
+
+Find one record by the primary key.
+
+ $employee = Employee::find($request->id);
+     echo "<pre>";
+    var_dump($employee->toArray());
+     echo "<pre>";
+
+
+Note:Its only Employee not Employees, Note given Fix-> $request->id
+
+Example 4: Find id and delete
+
+controllers:
+  employee:
+    test:
+      find: id
+      delete: employee
+
+-----------------------
+  $employee = Employee::find($request->id);
+        $employee->delete();
+-----------------------
+
+14.2. dispatch->
+      Generates a statement to dispatch a Job using the value to instantiate an object and pass any data.
+
+    For Example:
+
+     php artisan make:job ComputeSalary
+     // Name(job) create folder in app with file (ComputeSalary)
+
+ controllers:
+  employee:
+    test:
+      find: id
+      dispatch: ComputeSalary with:employee
+
+-------------------------
+      $employee = Employee::find($request->id);
+      ComputeSalary::dispatch($employee);
+--------------------------
+ Note: Becarefull Line and Space. job have any parameters ,we should put this partial statement
+
+ 14.3 Fire & Notify
+
+ Fire->Generates a statement to dispatch a < Event > using the value to instantiate the object and pass any data.
+
+controllers:
+  employee:
+    test:
+      find: project.id
+      fire: FancyEvent with:employee
+      flash: employee.name
+      notify: employee checkDetails with:project
+
+---------------
+make folder /App/Events/FancyEvent;
+Write code->
+
+<?php
+namespace app\Events;
+use Illuminate\Queue\SerializesModels;
+
+class FancyEvent{
+
+    use SerializesModels;
+    public $employee;
+    public function __construct($employee)
+    {
+        $this->employee=$employee;
+    }
+}
+
+?>
+
+--------------------
+
+*************************************************************
+Note: Problem is thaire no listener folder and FancyEvent,
+should use Own.
+*************************************************************
+
+Url->https://laravel.com/docs/8.x/events
+
+php artisan event:generate
+php artisan make:event FancyEvent
+php artisan make:listener SendPodcastNotification --event=FancyEvent
+php artisan make:notification checkDetails
+
+------------------------------
+ $project = Project::find($request->id);
+        $employee = Employee::find();
+
+        event(new FancyEvent($employee));
+
+        $request->session()->flash('employee.name', $employee->name);
+
+        $employee->notify(new checkDetails($project));
+------------------------------
+
+14.4 redirect->
+Generates a return redirect() statement using the value as a reference to a named route passing any data parameters.
+Ex->
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      redirect: employee.show with employee.id
+    showEmployee:
+      find: employee.id
+
+-------------------------------------------------------------
+
+ public function test(Request $request)
+    {
+        $employee = Employee::find($request->id);
+
+        return redirect()->route('employee.show', [$employee->id]);
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function showEmployee(Request $request)
+    {
+        $employee = Employee::find($request->id);
+
+        echo "<pre>";
+        var_dump($employee->toArray());
+        echo "<pre>";
+
+    }
+
+ url->http://localhost:8000/employee/show-employee?id=2
+-----------------------------------------------------------------
+
+14.5. Response & Render
+
+Response: Generates a response which returns the given value.
+Blueprint will generate the proper response() statement using the value as the status code.Example Given Below->
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      respond: employee
+
+Uri->http://localhost:8000/employee/test?id=2
+
+-----------------------------&-------------------------------------------
+
+Render: Generates a return view(); statement for the referenced template with any additional view data as a comma separated list.
+Example Given Below->
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      render: employee.show with employee
+
+14.6. Validate
+    Generates a form request with rules based on the referenced model definition. You may use a value of the model reference to validate all columns, or a comma separated list of the column names to validate.
+    For example->
+
+controllers:
+  employee:
+    test:
+      validate: employee
+
+Doc: create Request folder-> mployeeTestRequest file many rule like->
+        [
+            'name' => ['required', 'string', 'max:100'],
+            'identification' => ['required', 'string', 'max:100'],
+            'birth' => ['required'],
+            'salary' => ['required', 'integer', 'gt:0'],
+            'martial_status' => ['required', 'in:single,married,divorced'],
+            'bonus' => ['required', 'numeric', 'between:-999999.99,999999.99'],
+            'order' => ['required', 'integer', 'gt:0'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'department_id' => ['required', 'integer', 'exists:departments,id'],
+        ];
+
+
+
+14.7. Save
+ Generates an Eloquent statement for saving a model
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      save: employee
+
+--------------------------EmployeeController--------
+
+        $employee = Employee::find($request->id);
+        $employee->name="Jack";
+        $employee->save();
+        $employee = Employee::find($request->id);
+
+         echo "<pre>";
+         var_dump($employee->toArray());
+         echo "<pre>";
+
+Url->http://localhost:8000/employee/test?id=1
+
+------------------------end--------------------
+
+14.8. Send
+    Generates a statement to send a Mailable or Notification using the value to instantiate the object, specify the recipient, and pass any data.
+    For Example->
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      send: ThanksMail to:employee.conttactInfo.email
+
+------------------------------
+  use App\Mail\ThanksMail;
+  Mail::to($employee->conttactInfo->email)->send(new ThanksMail());
+  ------------------------
+14.9. store
+    Generates a statement to store data to the session. Blueprint will slugify the value as the session key and expands the reference as the session value.
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      store: employee.name
+
+------------------------------------------------------------------
+       $request->session()->put('employee.name', $employee->name);
+-------------------------------------------------------------------
+
+Note: if error, check url->https://blueprint.laravelshift.com/docs/controller-statements/
+
+14.10. Update
+    Generates an Eloquent update statement for a model. You may use a value of the model reference to generate a generic update statement, or a comma separated list of column names to update.
+    For Example->
+
+controllers:
+  employee:
+    test:
+      find: employee.id
+      update: name, identification
+----------------------------------------------------------
+       $employee = Employee::find($request->id);
+        $employee->update(['name' => $request->name, 'identification' => $request->identification]);
+-----------------------------------------------------------
+
+14.11. resource
+    Generates response statement for the Resource to the referenced model. You may prefix the plural model reference with collection or paginate to return a resource collection or paginated collection, respectively.
+
+Example-1
+controllers:
+  employee:
+    test:
+      find: employee.id
+      resource: paginate:employee
+
+Example-2
+controllers:
+  employee:
+    test:
+      find: employee.id
+      resource: collection:employee
+
+15.
+Blueprint in my opinio, It is not necessarry to get syntacctially right code in Controllers.But code and relative file are suffcient.
+
+******************************************************************************
+
+                               End Blueprint Doc
+
+******************************************************************************
