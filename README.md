@@ -1,15 +1,26 @@
-Build Status Latest Stable Version License
+Blueprint in my opinio, It is not necessarry to get syntacctially right code in Controllers.But code and relative file are suffcient.
 
-Blueprint
 
+************************************************************************************************************************************
+
+                                                  Blueprint Doc
+
+************************************************************************************************************************************
+
+Getting Started:
 Blueprint is an open-source tool for rapidly generating multiple Laravel components from a single, human readable definition.
 
-Watch a quick demo of Blueprint in action and continue reading to get started.
+Blueprint has two driving principles:
 
-Requirements
+1. Increase development speed
+2. Promote Laravel conventions
+
+Build Status Latest Stable Version License
+
+Requirements:
 Blueprint requires a Laravel application running the latest stable release of Laravel, currently Laravel 8.x.
 
-Installation
+Installation:
 You can install Blueprint via composer using the following command:
 
 composer require --dev laravel-shift/blueprint
@@ -17,7 +28,7 @@ Blueprint will automatically register itself using package discovery.
 
 Additional Configuration: If you are running Laravel 8, or registering class-based routes or using the app/Models folder, you will need to configure Blueprint. Please review the Blueprint Docs for additional guidance.
 
-Basic Usage
+Basic Usage:
 Blueprint comes with a set of artisan commands. The one you'll use the most is the blueprint:build command to generate the Laravel components:
 
 php artisan blueprint:build [draft]
@@ -46,6 +57,7 @@ controllers:
       fire: NewPost with:post
       flash: post.title
       redirect: post.index
+      
 From these simple 20 lines of YAML, Blueprint will generate all of the following Laravel components:
 
 A model class for Post complete with fillable, casts, and dates properties, as well as relationships methods.
